@@ -47,7 +47,7 @@ console.log('attempting to access private variables: ' + myAnimal.private);
 
 /*
 Bob is the colour red
-I am walking with my girlfriend with my girlfriend Amy
+I am walking with my girlfriend Amy
 attempting to access private variables: undefined 
 */
 ```
@@ -69,7 +69,7 @@ myHorse.walk();
 
 /*
 Greg is the colour brown
-I am walking with my girlfriend with my girlfriend Amy
+I am walking with my girlfriend Amy
 really FAST! 
 */
 ```
