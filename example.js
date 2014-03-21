@@ -1,26 +1,5 @@
-[Timber](http://timber.io/) - Shiver me objects
-==================================================
+// example of private scoping
 
-What this library does?
---------------------------------------
-
-This library's aim is to provide light weight class functionality to javascript which supports:
-
-* Works on both the web and NodeJS
-* Multiple Inheritence (with super keyword support)
-* Classes with private variables
-* Singleton classes
-* Bindable events on variable changes
-* A package/module manager (planned)
-
-A compiled version of this library is `timber_compiled.js`
-
-Example uses (there is more functionality then just this)
---------------------------------------
-
-Private Scoping:
-
-```javascript
 var animal = timber({ 
 
 	defaults: {
@@ -56,11 +35,11 @@ I am walking
 I love Amy
 attempting to access private variables: undefined 
 */
-```
 
-Default values & Inheritence:
 
-```javascript
+
+// example of default values and inheritence
+
 var horse = animal.extend({
 	
 	walk: function() {
@@ -78,11 +57,10 @@ Greg is the colour brown
 I am walking
 really FAST! 
 */
-```
 
-Singletons:
 
-```javascript
+// example of singleton classes, ref1 and ref2 point to the same instance of coolAPI
+
 var coolAPI = timber({
 
 	singleton: true,
@@ -103,11 +81,3 @@ console.log(ref2.id);
 hello, I ran just once!
 5 
 */
-```
-
-Developing Timber
---------------------------------------
-
-1. install [NodeJS](http://nodejs.org/)
-2. cd into master and run `npm install`
-3. run `grunt watch` and start deving

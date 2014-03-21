@@ -1,0 +1,17 @@
+{
+  "name": "timber",
+  "version": "0.0.0",
+  "description": "Objects on steroids",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "David Zorychta",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-requirejs": "~0.4.3",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-cli": "~0.1.13"
+  }
+}
