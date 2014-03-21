@@ -36,24 +36,18 @@ var animal = timber({
 	},
 
 	walk: function() {
-		console.log('I am walking');
-	},
-
-	lover: function() {
-		console.log('I love ' + this.private.girlfriend);
+		console.log('I am walking with my girlfriend ' + this.private.girlfriend);
 	}
 
 });
 
 var myAnimal = new animal({ colour: 'red' }, 'Bob');
 myAnimal.walk();
-myAnimal.lover();
 console.log('attempting to access private variables: ' + myAnimal.private);
 
 /*
 Bob is the colour red
-I am walking
-I love Amy
+I am walking with my girlfriend with my girlfriend Amy
 attempting to access private variables: undefined 
 */
 ```
@@ -104,6 +98,32 @@ hello, I ran just once!
 5 
 */
 ```
+
+Variable Bindings:
+
+```javascript
+var person = timber({
+	
+	defaults: {
+		location: 'California'
+	},
+
+	init: function() {
+		this.on('change:location', function(loc) {
+			console.log('now located in ' + loc);
+		});
+	}
+
+});
+
+var Sam = new person();
+Sam.location = 'Nebraska';
+
+/*
+now located in Nebraska
+*/
+```
+
 
 Developing Timber
 --------------------------------------
