@@ -48,7 +48,7 @@ myHorse.walk();
 
 /*
 Greg is the colour brown
-I am walking
+I am walking with my girlfriend with my girlfriend Amy
 really FAST! 
 */
 
