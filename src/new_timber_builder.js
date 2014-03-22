@@ -58,12 +58,22 @@ function trick(trickProps, isExtending) {
 
 /* takes trickProps object and deflates it onto the trick prototype */
 function _applyTrickProps(newTrick, trickProps) {
+
+	// rip out defaults
 	if(trickProps && trickProps.defaults) {
 		var defaults = trickProps.defaults;
 		delete trickProps.defaults;
 	}
-	// set defaults
+
+	// if newTrick already has private variables, combine them into new privates given
+	if(typeof newTrick.prototype.private !== 'undefined' && typeof trickProps.private !== 'undefined') {
+		helperMethods.mixin_passive(trickProps.private, newTrick.prototype.private);
+	}
+
+	// set all properties
 	helperMethods.mixin(newTrick.prototype, trickProps);
+
+	// now set defaults
 	if(defaults)
 		helperMethods.mixin(newTrick.prototype, defaults);
 }

@@ -3,6 +3,8 @@
 	/* includes useful methods like mixin */
 	var helperMethods = {
 
+	/* combine attributes of obj into self */
+
 	mixin: function(self, obj) {
 		// force prototype to be mixin'd if given instead of object
 		if(typeof obj == 'function' && typeof obj.prototype == 'object')
@@ -10,7 +12,23 @@
 		for(var prop in obj)
 			self[prop] = obj[prop];
 		// chain game
-		return this;
+		return self;
+	},
+
+	/* combine attributes of obj into self
+	 * but do not overwrite already existing
+	 * attributes.
+	 */
+
+	mixin_passive: function(self, obj) {
+		// force prototype to be mixin'd if given instead of object
+		if(typeof obj == 'function' && typeof obj.prototype == 'object')
+			return helperMethods.mixin_passive(self, obj.prototype);
+		for(var prop in obj)
+			if(typeof self[prop] === 'undefined')
+				self[prop] = obj[prop];
+		// chain game
+		return self;
 	},
 
 	// take an object with props or a length and spit out an array
@@ -145,8 +163,7 @@ var classExtender = function(newClass, parent) {
 	var self = this;
 
 	// give this timber private scope
-	var privateScope = this.private;
-	delete this.private;
+	var privateScope = helperMethods.mixin({}, this.private || {});
 	fn_parser.addPrivateScope(this, privateScope);
 
 	/* EVENT MANAGEMENT */
@@ -392,12 +409,22 @@ tricks.prototype.delay = function(time) {
 
 /* takes trickProps object and deflates it onto the trick prototype */
 function _applyTrickProps(newTrick, trickProps) {
+
+	// rip out defaults
 	if(trickProps && trickProps.defaults) {
 		var defaults = trickProps.defaults;
 		delete trickProps.defaults;
 	}
-	// set defaults
+
+	// if newTrick already has private variables, combine them into new privates given
+	if(typeof newTrick.prototype.private !== 'undefined' && typeof trickProps.private !== 'undefined') {
+		helperMethods.mixin_passive(trickProps.private, newTrick.prototype.private);
+	}
+
+	// set all properties
 	helperMethods.mixin(newTrick.prototype, trickProps);
+
+	// now set defaults
 	if(defaults)
 		helperMethods.mixin(newTrick.prototype, defaults);
 }

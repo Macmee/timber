@@ -3,8 +3,7 @@ function tricks(params) {
 	var self = this;
 
 	// give this timber private scope
-	var privateScope = this.private;
-	delete this.private;
+	var privateScope = helperMethods.mixin({}, this.private || {});
 	fn_parser.addPrivateScope(this, privateScope);
 
 	/* EVENT MANAGEMENT */
