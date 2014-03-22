@@ -15,7 +15,7 @@ This library's aim is to provide light weight class functionality to javascript 
 
 A compiled version of this library is `timber_compiled.js`
 
-Example uses (there is more functionality then just this)
+Example uses
 --------------------------------------
 
 Private Scoping:
