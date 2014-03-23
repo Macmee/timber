@@ -274,8 +274,12 @@ var classExtender = function(newClass, parent) {
 				}
 				// get the event name and selector from the prop we were given
 				var space = e.indexOf(' ');
-				var eventName = e.substr(0, space);
-				var eventSelector = e.substr(space + 1);
+				if(space == -1) {
+					var eventName = e;
+				}else{
+					var eventName = e.substr(0, space);
+					var eventSelector = e.substr(space + 1);
+				}
 				// bind the event with jQuery if its available
 				if($el) {
 					$el.on(eventName, eventSelector, function(e) {
@@ -292,7 +296,7 @@ var classExtender = function(newClass, parent) {
 						for(var i = 0; i < 50; i++) {
 							if(!node) {
 								break;
-							}else if(node[matchesSelector](eventSelector)) {
+							}else if(space == -1 || node[matchesSelector](eventSelector)) {
 								e.currentTarget = node; 
 								callback.call(self, e, node);
 								break;
