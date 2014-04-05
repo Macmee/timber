@@ -52,6 +52,36 @@ attempting to access private variables: undefined
 */
 ```
 
+Events:
+
+```html
+<html>
+...
+	<body>
+	...
+		<div class="seven" style="background: #000; height: 10px; width: 10px;">7</div>
+	...
+	</body>
+</html>
+```
+
+```javascript
+var six = timber({
+	
+	init: function() {
+
+	},
+
+	events: {
+		"click .seven": "showMessage"
+	},
+
+	showMessage: function() {
+		alert("This isn't the number six!");
+	}
+});
+```
+
 Default values & Inheritence:
 
 ```javascript
