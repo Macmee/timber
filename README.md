@@ -267,7 +267,6 @@ attempting to access private variables: undefined
 */
 ```
 
-<<<<<<< HEAD
 ####Events<a name='events'></a>
 
 Every timber class has a div attribute called `this.el` (`this.$el` works automatically if you use jQuery). You can bind functions to this div element in the following way:
@@ -298,39 +297,6 @@ document.body.appendChild(object.el); // or $('body').append(object.el) for jQue
 ```
 
 ####Default values & Inheritence<a name='inheritence'></a>
-=======
-Events:
-
-```html
-<html>
-...
-	<body>
-	...
-		<div class="seven" style="background: #000; height: 10px; width: 10px;">7</div>
-	...
-	</body>
-</html>
-```
-
-```javascript
-var six = timber({
-	
-	init: function() {
-
-	},
-
-	events: {
-		"click .seven": "showMessage"
-	},
-
-	showMessage: function() {
-		alert("This isn't the number six!");
-	}
-});
-```
-
-Default values & Inheritence:
->>>>>>> 8cf67cc8a7c7dd29f6a60a2c3c12e12086785626
 
 ```javascript
 var horse = animal.extend({
