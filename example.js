@@ -3,7 +3,7 @@
 var animal = timber({ 
 
 	defaults: {
-		colour: 'brown'
+		colour: 'red'
 	},
 
 	private: {
@@ -20,7 +20,7 @@ var animal = timber({
 
 });
 
-var myAnimal = new animal({ colour: 'red' }, 'Bob');
+var myAnimal = new animal('Bob');
 myAnimal.walk();
 console.log('attempting to access private variables: ' + myAnimal.private);
 
@@ -43,7 +43,7 @@ var horse = animal.extend({
 
 });
 
-var myHorse = new horse({}, 'Greg');
+var myHorse = new horse('Greg');
 myHorse.walk();
 
 /*

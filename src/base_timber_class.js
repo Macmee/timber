@@ -2,6 +2,13 @@ function tricks(params) {
 
 	var self = this;
 
+        // give this timber deep copies of its defaults
+        if(typeof this.deepProperties !== 'undefined') {
+	    for(var prop in this.deepProperties)
+		this[prop] = JSON.parse(this.deepProperties[prop]);
+	    delete this.deepProperties;
+	}
+   
 	// give this timber private scope
 	var privateScope = helperMethods.mixin({}, this.private || {});
 	fn_parser.addPrivateScope(this, privateScope);
@@ -49,32 +56,31 @@ function tricks(params) {
 	// do actions only relavent if tricks was inherited with the dom property enabled
 	if(this.domless != true) {
 
-		/* create or locate the view for this trick */
-
 		// if the user gave us a selector use that one
 		if(params.el) {
 			// user given selector is jQuery selector
 			if(params.el instanceof jQuery) {
-				params.$el = params.el;
-				params.el = params.el[0];
+				this.$el = params.el;
+				this.el = params.el[0];
 			// user given selector is not jquery
-			}else if(wiundow.jQuery) {
-				params.$el = $(params.el);
+			}else if(typeof jQuery !== 'undefined') {
+				this.$el = $(params.el);
+				this.el = params.el;
 			}
 		// user gave us no selector so make one
 		}else{
 			if(typeof document !== 'undefined') {
-				params.el = document.createElement(this.tagName ? this.tagName : 'div');
+				this.el = document.createElement(this.tagName ? this.tagName : 'div');
 				if(typeof jQuery !== 'undefined')
-					params.$el = jQuery(params.el);
+					this.$el = jQuery(this.el);
 			}
 		}
 
-		if(this.className)
-			params.el.className = this.className;
+		if(typeof this.className !== 'undefined')
+			this.el.className = this.className;
 
-		if(this.id)
-			params.el.id = this.id;
+		if(typeof this.id !== 'undefined')
+			this.el.id = this.id;
 
 
 
@@ -82,10 +88,10 @@ function tricks(params) {
 
 	/* handle events for the trick */
 
-	if(this.events) {
+	if(typeof this.events !== 'undefined') {
 		// determine method of adding the events
-		var el = params.el;
-		var $el = params.$el;
+		var el = this.el;
+		var $el = this.$el;
 		// fix for webkitMatchesSelector
 		if(!$el) {
 			var matchesSelector = false;
@@ -152,9 +158,6 @@ function tricks(params) {
 		}
 	}
 
-	// slap parameters into function as attributes
-	helperMethods.mixin(this, params);
-
 }
 
 /* take another object or function and steal its functions/prototypes and dump them into our prototype */
@@ -172,7 +175,6 @@ tricks.prototype.get = function(key) {
 
 tricks.prototype.set = function(key, value) {
 	this[key] = value;
-	//this.trigger('change:' + key, value);
 }
 
 tricks.prototype.delay = function(time) {

@@ -47,7 +47,7 @@ var classExtender = function(newClass, parent) {
 		enumerable: false,
 		configurable: true,
 		set: function(data) {},
-		get: generateSuper,
+		get: generateSuper
 	 });
 
      // when the subclass inherits a method from the superclass where the method uses the super method, super in this case must point to the superclass's superclass, we fix this by defining these methods directly on the subclass to essensially proxy call super so that the value of ._super propagates correctly

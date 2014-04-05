@@ -4,10 +4,17 @@ function trick(trickProps, isExtending) {
 	if(trickProps && trickProps['extends']) {
 		var extending = trickProps['extends'];
 		delete trickProps['extends'];
-		if(extending instanceof Array && extending.length > 0)
-			return extending.shift().extend(trickProps, extending);
-		else
+		if(extending instanceof Array && extending.length > 0) {
+			var firstClass = extending.shift();
+			if(typeof firstClass === 'string')
+				firstClass = getModule(helperMethods.endsWith(firstClass, '.js') ? firstClass : firstClass + '.js');
+			return firstClass.extend(trickProps, extending);
+		}
+		else{
+			if(typeof extending === 'string')
+				extending = getModule(helperMethods.endsWith(extending, '.js') ? extending : extending + '.js');
 			return extending.extend(trickProps);
+		}
 	}
 
 	// create constructor for the new trick
@@ -16,51 +23,46 @@ function trick(trickProps, isExtending) {
 		// call the setupTrick method
 		tricks.call(this, params);
 		// invoke "init" constructor unless we're a singleton
-		if(!trickProps.singleton) {
-			var args = helperMethods.parseArray(arguments);
-			args.shift();
-			if(typeof this.init === 'function')
-				this.init.apply(this, args);
-		}
+		if( (typeof trickProps === 'undefined' || !trickProps.singleton) && typeof this.init === 'function')
+			this.init.apply(this, arguments);
 	}
 
 	// give the trick .extend() like functionality
 	newTrick.extend = extendTrick;
 
 	// optimization, if trick invoked by extendTrick, the below will be overwritten anyway so dont run it
-	if(isExtending) return newTrick;
+	if(isExtending)
+        return newTrick;
 
 	// give prototype for this function access to the tricks API
 	newTrick.prototype = Object.create(tricks.prototype);
 
 	// apply trickProps to the trick
-	_applyTrickProps(newTrick, trickProps);
-
-	// return a singleton instance
-	if(trickProps.singleton) {
-		var singleton;
-		return function(params) {
-			if(singleton)
-				return singleton;
-			singleton = new newTrick(params);
-			var args = helperMethods.parseArray(arguments);
-			args.shift();
-			if(typeof singleton.init === 'function')
-				singleton.init.apply(singleton, args);
-			return singleton;
-		}
-	}
-
-	// return our new trick
-	return newTrick;
+	return applyTrickProps(newTrick, trickProps);
 
 }
 
+/* takes a timber and returns a singleton instance */
+function makeSingletonInstace(newTrick) {
+	var singleton;
+	return function(params) {
+		if(singleton)
+			return singleton;
+		singleton = new newTrick(params);
+		if(typeof singleton.init === 'function')
+			singleton.init.apply(singleton, arguments);
+		return singleton;
+	}
+}
+
 /* takes trickProps object and deflates it onto the trick prototype */
-function _applyTrickProps(newTrick, trickProps) {
+function applyTrickProps(newTrick, trickProps) {
+
+	if(typeof trickProps === 'undefined')
+		return newTrick;
 
 	// rip out defaults
-	if(trickProps && trickProps.defaults) {
+	if(typeof trickProps.defaults !== 'undefined') {
 		var defaults = trickProps.defaults;
 		delete trickProps.defaults;
 	}
@@ -73,27 +75,77 @@ function _applyTrickProps(newTrick, trickProps) {
 	// set all properties
 	helperMethods.mixin(newTrick.prototype, trickProps);
 
-	// now set defaults
-	if(defaults)
+	// now set defaults and make a dump of objects to deep copy
+	if(typeof defaults !== 'undefined') {
+		if(typeof newTrick.prototype.deepProperties === 'undefined')
+		    var deepProperties = newTrick.prototype.deepProperties = {};
+		else
+		    var deepProperties = newTrick.prototype.deepProperties;
+		for(var prop in defaults) {
+		    if(defaults[prop] instanceof Object)
+			deepProperties[prop] = JSON.stringify(defaults[prop]);
+		    else
+			newTrick.prototype[prop] = defaults[prop];
+		}
 		helperMethods.mixin(newTrick.prototype, defaults);
+	}
+
+	// setup requirements
+	if(typeof trickProps.requires !== 'undefined') {
+		var reqList = typeof trickProps.requires === 'string' ? [trickProps.requires] : trickProps.requires;
+		for(var i in reqList) {
+			var moduleDetails = moduleSelector(reqList[i]);
+			var module = getModule(moduleDetails.name + '.' + moduleDetails.extension);
+			// store module
+			if(moduleDetails.saveParent == 'this')
+				newTrick.prototype[moduleDetails.variableName] = module;
+			else if(typeof pkgEnv.globalScope[moduleDetails.variableName] === 'undefined')
+				pkgEnv.globalScope[moduleDetails.variableName] = module;
+		}
+		delete trickProps.requires;
+	}
+
+	// generate singleton
+	if(trickProps.singleton)
+		newTrick = makeSingletonInstace(newTrick);
+
+	// store class on window
+	pkgEnv.latestClass = newTrick;
+	return newTrick;
+
 }
 
 /* allows for extending another trick */
 
-function extendTrick(trickProps, mixins) {
+function extendTrick(trickProps, mixins) { /* this = some trick function */
 
 	// the class we inherit from directly is the first item in the array
-	var inheritFrom = this instanceof Array ? extending.shift() : this;
 	var newClass = trick(trickProps, true);
-	classExtender(newClass, inheritFrom);
+	classExtender(newClass, this);
 
 	// mixin the other extendees
 	if(typeof mixins !== 'undefined')
-		for(var i = 0; i < mixins.length; i++)
-			helperMethods.mixin(newClass.prototype, mixins[i]);
+		for(var i = 0; i < mixins.length; i++) {
+			var extending = mixins[i];
+			if(typeof extending === 'string')
+				extending = getModule(helperMethods.endsWith(extending, '.js') ? extending : extending + '.js');
+            helperMethods.mixin_passive(newClass.prototype, extending);
+		    // fix deep copy defaults
+		    if(typeof extending.prototype.defaults !== 'undefined') {
+			    // determine where on prototype to store deep vars
+			    if(typeof newClass.prototype.deepProperties === 'undefined')
+				    var deepProperties = newClass.prototype.deepProperties = {};
+			    else
+				    var deepProperties = newClass.prototype.deepProperties;
+			    // add deep vars to prototype
+			    for(var prop in defaults)
+				    if(defaults[prop] instanceof Object && typeof deepProperties[prop] === 'undefined')
+				        deepProperties[prop] = JSON.stringify(defaults[prop]);
+				    
+			}
+				    
+		}
 
 	// only after everything should we apply trick props to our new class
-	_applyTrickProps(newClass, trickProps);
-
-	return newClass;
+	return applyTrickProps(newClass, trickProps);
 }

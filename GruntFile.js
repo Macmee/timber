@@ -1,6 +1,7 @@
 module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 
   grunt.initConfig({
     watch: {
@@ -10,6 +11,15 @@ module.exports = function(grunt) {
       build_dev: {
         files: ['src/*.js'],
         tasks: 'build_dev'
+      }
+    },
+    connect: {
+      dev: {
+        options: {
+          port: 3000,
+          base: '',
+          keepalive: true
+        }
       }
     }
   });

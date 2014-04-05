@@ -28,17 +28,12 @@ var helperMethods = {
 		return self;
 	},
 
-	// take an object with props or a length and spit out an array
-	parseArray: function(object) {
-		var returnArray = [];
-		if(object.length) {
-			for(var i = 0; i < object.length; i++)
-				returnArray.push(object[i]);
-		}else if(!object.length && typeof object == 'object') {
-			for(var prop in object)
-				returnArray.push(object[prop]);
-		}
-		return returnArray;
+	/* determines if given string ends with
+	 * later string
+	 */
+
+	endsWith: function(haystack, needle) {
+		return haystack.substr(haystack.length - needle.length) === needle;
 	}
 
 }

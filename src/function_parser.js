@@ -18,12 +18,12 @@ var fn_parser = {
 		var self = this;
 
 		Object.defineProperty(obj, 'private', {
-		  enumerable: true,
-		  configurable: true,
-		  set: function(data) {},
-		  get: function() {
-		       return self.hasPrivateScope(arguments.callee.caller) ? privateScope : undefined;
-		  },
+		    enumerable: true,
+		    configurable: true,
+		    set: function(data) {},
+		    get: function() {
+		        return self.hasPrivateScope(arguments.callee.caller) ? privateScope : undefined;
+		    }
 		});
 
 	}
