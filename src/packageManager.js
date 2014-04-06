@@ -29,19 +29,13 @@ function moduleSelector(sel) {
 	}else{
 		saveLoc = saveAt;
 	}
+    // return the selector
 	return {
 		name: moduleName,
 		saveParent: saveLoc,
 		extension: extension,
         variableName: saveAt.charAt(0) === ':' ? saveAt.substr(1) : saveAt
 	};
-}
-
-function evaluateCode(code) {
-	var se = document.createElement('script');
-	se.type = "text/javascript";
-	se.text = code;
-	document.getElementsByTagName('head')[0].appendChild(se);
 }
 
 function basePath(path) {
@@ -55,12 +49,27 @@ function baseName(str) {
 }
 
 function resolvePath(filename, base) {
+    // fetch from web
     if(filename.charAt(0) == ':')
 		return settings.repoBase + '?v=' + settings.version + '&f=' + filename.substr(1);
-	if(filename.substr(0, 2) == './')
-		return filename.substr(2);
-	if(filename.charAt(0) == '/' || filename.substr(0, 5) == 'http:')
+    // root it up
+	if(filename.charAt(0) === '/' || filename.substr(0, 5) === 'http:')
 		return filename;
+    // root from index.html
+	if(filename.substr(0, 2) === '~/')
+		return filename.substr(2);
+    // macro
+    if(typeof settings.paths !== 'undefined') {
+        var slash = filename.indexOf('/');
+        var front = filename.substr(0, slash);
+        var path = settings.paths[front];
+        if(typeof path !== 'undefined') {
+            if(!helperMethods.endsWith(path, '/'))
+                path = path + '/';
+            return path + filename.substr(slash + 1);   
+        }
+    }
+    // no base provided
     if(typeof base === 'undefined')
         return filename;
 	var filename_parts = filename.split('/');
@@ -78,6 +87,17 @@ var pkgEnv = {
     cachedFiles: {},
     globalScope: globalScope
 };
+
+function getBasePath() {
+    return typeof pkgEnv.base === 'undefined' && document.currentScript !== null ? basePath(document.currentScript.src) : pkgEnv.base;
+}
+
+trick.addPath = function(key, filename) {
+    var fullPath = resolvePath( filename, getBasePath() );
+    if(typeof settings.paths === 'undefined')
+        settings.paths = {};
+    settings.paths[key] = fullPath;
+}
 
 if(isNodeJS) {
 
@@ -158,49 +178,67 @@ pkgEnv.getModule_real = function(filename, base) {
         return pkgEnv.cachedFiles[basename] = handlebars.compile(xhrObj.responseText);
     }
 
+    return pkgEnv.cachedFiles[basename] = runInCurrentContext(xhrObj.responseText, fullPath);
+}
+
+function runInCurrentContext(code, fullPath) {
+
+    // this is the virtual base of where the code is supposed to be running from
 	var base = basePath(fullPath);
 
-	var code = 'window.__timberRequire = function(pkgEnv) {\
-                    \
-					function getModule(filename) {\
-						return pkgEnv.getModule_real(filename, "' + base + '");\
-					}\
-                    \
-					var module = { exports: { __undefined: true } };\
-                    \
-					var prevLatestClass = pkgEnv.latestClass;\
-					delete pkgEnv.latestClass;\
-					var prevBase = pkgEnv.base;\
-                    /*var prevGlobalScope = pkgEnv.globalScope;*/\
-                    /*pkgEnv.globalScope = {};*/\
-                    pkgEnv.base = "' + base + '";\
-                    \
-					' + xhrObj.responseText + ';\
-                    \
-					var thisClass = pkgEnv.latestClass;\
-					pkgEnv.latestClass = prevLatestClass;\
-					pkgEnv.base = prevBase;\
-                    \
-                    /*for(var name in pkgEnv.globalScope)\
-                        eval("var " + name + "=" + "pkgEnv.globalScope[\'" + name + "\']");\
-                    pkgEnv.globalScope = prevGlobalScope;*/\
-                    \
-					var exports = module.exports;\
-					delete module.exports;\
-					if(typeof exports !== "undefined" && !exports.__undefined) {\
-						return exports;\
-					}else if(Object.keys(module).length > 0) {\
-						return module;\
-					}else{\
-						return thisClass;\
-					}\
-				}';
-    evaluateCode(code);
-	return pkgEnv.cachedFiles[basename] = window.__timberRequire(pkgEnv);
+    // create new "simulated reference" environment
+    function getModule(filename) {
+        return pkgEnv.getModule_real(filename, base);
+    }
+    var module = { exports: { __undefined: true } };
+    var prevLatestClass = pkgEnv.latestClass;
+    delete pkgEnv.latestClass;
+    var prevBase = pkgEnv.base;
+    pkgEnv.base = base;
+    var prevGlobalScope = pkgEnv.globalScope;
+    pkgEnv.globalScope = {};
+    var exports = true;
+
+    // run the encapsulated code
+    try{
+        eval(code);
+    }catch(e) {
+        var line = e.stack.match(/>:([0-9]*):/);
+        line = line.length > 0 ? " on line " + line.pop() : "";
+        e.message = e.message + ' in file ' + fullPath + line;
+        throw e;
+    }
+        
+    // replace the global variables timber created in the above eval with psuedo global ones
+    for(var name in pkgEnv.globalScope) {
+        if(name[0] === "!") {
+            globalScope[name.substr(1)] = pkgEnv.globalScope[name];
+        }else{
+            eval("var " + name + "=" + "pkgEnv.globalScope['" + name + "']");
+        }
+    }
+
+    // restore previous "reference" environment
+    pkgEnv.globalScope = prevGlobalScope;
+    var thisClass = pkgEnv.latestClass;
+    pkgEnv.latestClass = prevLatestClass;
+    pkgEnv.base = prevBase;
+
+    // determine where the module is within the eval and return it
+    exports = module.exports;
+    delete module.exports;
+    if(typeof exports !== "undefined" && !exports.__undefined) {
+        return exports;
+    }else if(Object.keys(module).length > 0) {
+        return module;
+    }else{
+        return thisClass;
+    }
+    
 }
 
 globalScope.getModule = function(filename) {
-	return pkgEnv.getModule_real(filename, typeof pkgEnv.base === 'undefined' ? basePath(document.currentScript.src) : pkgEnv.base);
+	return pkgEnv.getModule_real(filename, getBasePath());
 }
 
 if(typeof globalScope.require === 'undefined')

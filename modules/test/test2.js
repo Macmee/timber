@@ -1,6 +1,6 @@
 var parent = timber({
 
-        defaults: {
+    defaults: {
 	    x : 5,
 	    y: { a: 55 }
 	},
@@ -12,10 +12,12 @@ var parent = timber({
 
 });
 
-module.exports = parent.extend({
+var someClass = parent.extend({
 	requires: ['../test a'],
 	init: function() {
 		a();
-		this.super.init()
+		this.super.init();
 	}
 });
+
+module.exports = someClass;

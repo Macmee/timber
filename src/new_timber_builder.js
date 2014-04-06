@@ -42,6 +42,11 @@ function trick(trickProps, isExtending) {
 
 }
 
+/* allow changing settings */
+trick.config = function(givenSettings) {
+    helperMethods.mixin(settings, givenSettings);
+}
+
 /* takes a timber and returns a singleton instance */
 function makeSingletonInstace(newTrick) {
 	var singleton;
@@ -95,12 +100,17 @@ function applyTrickProps(newTrick, trickProps) {
 		var reqList = typeof trickProps.requires === 'string' ? [trickProps.requires] : trickProps.requires;
 		for(var i in reqList) {
 			var moduleDetails = moduleSelector(reqList[i]);
-			var module = getModule(moduleDetails.name + '.' + moduleDetails.extension);
+			var mod = getModule(moduleDetails.name + '.' + moduleDetails.extension);
 			// store module
-			if(moduleDetails.saveParent == 'this')
-				newTrick.prototype[moduleDetails.variableName] = module;
-			else if(typeof pkgEnv.globalScope[moduleDetails.variableName] === 'undefined')
-				pkgEnv.globalScope[moduleDetails.variableName] = module;
+			if(moduleDetails.saveParent === 'this')
+				newTrick.prototype[moduleDetails.variableName] = mod;
+            else if(moduleDetails.saveParent === 'window' || pkgEnv.globalScope === globalScope)
+                globalScope[moduleDetails.variableName] = mod;
+			else{
+                pkgEnv.globalScope['!' + moduleDetails.variableName] = globalScope[moduleDetails.variableName]; // temporarily overwrite global scope
+                globalScope[moduleDetails.variableName] = mod;
+		        pkgEnv.globalScope[moduleDetails.variableName] = mod;
+            }
 		}
 		delete trickProps.requires;
 	}
@@ -111,6 +121,7 @@ function applyTrickProps(newTrick, trickProps) {
 
 	// store class on window
 	pkgEnv.latestClass = newTrick;
+    
 	return newTrick;
 
 }

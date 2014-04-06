@@ -56,6 +56,8 @@ function tricks(params) {
 	// do actions only relavent if tricks was inherited with the dom property enabled
 	if(this.domless != true) {
 
+        var jQuery = globalScope.jQuery || globalScope.$;
+        
 		// if the user gave us a selector use that one
 		if(params.el) {
 			// user given selector is jQuery selector

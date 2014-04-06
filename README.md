@@ -21,12 +21,13 @@ Table of Contents
 * [Downloading and Using Timber](#download)
 * [Optimizing for Deployment](#compiler)
 
-#####Built-in Module Loader
+#####Built-in Module (Class) Loader
 * [What Is It?](#moduleLoader)
-* [Choosing Where Modules are Saved](#savingmodules)
-* [Loading Remote Modules (Including jQuery, Underscore, etc)](#remotemodules)
-* [Creating And Including Modules](#localmodules)
-* [Including Handlebars Templates](#handlebars)
+* [Creating Your Own Modules / Classes](#localmodules)
+* [Retrieving Locally Saved Modules](#fetchlocal)
+* [Retrieving Remote Modules (Including jQuery, Underscore, etc)](#remotemodules)
+* [Retrieving Handlebars Templates With Module Loader](#handlebars)
+* [Creating Folder Shortcuts/Aliases For Easier Module Loading](#addPath)
 
 #####Example Uses
 * [Private Scoping](#privatescoping)
@@ -73,7 +74,7 @@ Can be used like:
 	
 This optimizes and combines all dependancies (local & remote) and stores them all into compiled.js
 
-Built-in Module Loader
+Built-in Module (Class) Loader
 --------------------------------------
 
 ####What Is It?<a name='moduleLoader'></a>
@@ -83,54 +84,7 @@ Timber comes with a simple module loader that is somewhat CommonJS compliant. Yo
 * Loading in local modules that exist within the current project
 * Loading in NodeJS modules
 
-####Choosing Where Modules are Saved<a name='savingmodules'></a>
-
-Modules can either be stored globally, or (more recommended) onto the class being defined:
-
-```javascript
-var myClass = timber({
-
-	requires: [ ':jquery $', 
-		        ':underscore', 
-		        '../someOtherModule.js', // note: the .js is optional
-		        '../modules/myModule this.walla' ],
-
-	init: function() {
-		console.log($, 'jQuery included from remote repo and assigned to $');
-		console.log(underscore, 'underscore included from remote repo');
-		console.log(someOtherModule, 'someOtherModule included locally');
-		console.log(this.walla, 'myModule included and assigned to this.walla');
-	}
-
-});
-```
-
-####Loading Remote Modules (Including jQuery, Underscore, etc)<a name='remotemodules'></a>
-
-Timber gives you the ability to load in remote modules with a single line of code. You can later use the (Timber Compiler)[#compiler] to build and optimize your application which will automatically store these remote modules locally for you.
-
-Example of remote module loading:
-```javascript
-var myClass = timber({ 
-
-	requires: ':jquery $', // you can also provide an array [':jquery $', ':underscore _']
-
-	init: function() {
-		console.log('jQuery has been included', $(document));
-	}
-
-});
-
-var myObj = new myClass;
-
-/*
-jQuery has been included [document-element]
-*/
-```
-
-The semicolon infront of module names indicates to timber that you wish for the library to load the module from the Timber repo at http://timber.io/repo.
-
-####Creating And Including Modules<a name='localmodules'></a>
+####Creating Your Own Modules / Classes<a name='localmodules'></a>
 
 A Timber compliant module is just a single file, it may consist of the following:
 
@@ -184,7 +138,87 @@ Alternatively you can also include this module using:
 var yourModule = getModule('../modules/myModule.js'); // note how getModule requires a file extension
 ```
 
-####Including Handlebars Templates<a name='handlebars'></a>
+####Retrieving Locally Saved Modules<a name='fetchlocal'></a>
+
+Timber has a highly flexible module loader that allows for a phethora of different options when loading in a module. The developer has complete control as to where the module loader should look for the module, and where the module should be saved.
+
+When you load modules in (as you see below), you assign an array of strings to the `requires:` attribute of a timber class (you can also assign the `requires:` attribute to a singular string in the event that you are only requiring one module). Each of the strings you define represents one of the modules you are loading in. Each string takes the form:
+
+    "module_location where_to_save"
+
+By default, the module loader looks for modules relative to the current file you are editing. If you are editing the file `js/myClass.js` and make the contents of this file:
+
+```javascript
+//myApp/js/myClass.js
+
+var myClass = timber({
+    
+    requires: 'views/garden',
+
+    init: function() {
+        console.log('I am in the garden: ' + garden);
+    }
+      
+});
+```
+Then `views/garden` is included at the location `myApp/js/views/garden.js`. If instead you want `garden.js` to be loaded in from `myApp/views/garden.js`, you could have specified `~/views/garden.js`. Paths starting with `~/` mean "relative from the html file currently running".
+
+When loading a module in, you have 3 options of where to save that module, either:
+* into `this.moduleName`
+* into `window.moduleName`
+* into `moduleName` that only the current file can see
+    
+The last option of the above is the default option, if no location is specified. A comprehensive example of local module loading is shown below:
+
+```javascript
+// myApp/js/myClass.js
+    
+var myClass = timber({
+
+	requires: [ '../racecar.js',           // load myApp/racecar.js into a variable called racecar, that only myClass.js can see
+		        '../racecar',              // same as above, note how .js is not required
+		        '../racecar car',          // load myApp/racecar.js into a variable called car, that only myClass.js can see
+		        '../racecar this.car',     // load myApp/racecar.js into a variable called this.car
+		        '../racecar window.car',   // load myApp/racecar.js into a variable called window.car
+                '~/racecar vroooooooom' ]  // load myApp/racecar.js into a variable called vroom (note the ~/ means relative to index.html)
+
+	init: function() {
+		console.log( racecar,
+                     car,
+                     this.car,
+                     window.car,
+                     vroooooooom );
+	}
+
+});
+```
+
+####Retrieving Remote Modules (Including jQuery, Underscore, etc)<a name='remotemodules'></a>
+
+Timber gives you the ability to load in remote modules with a single line of code. You can later use the (Timber Compiler)[#compiler] to build and optimize your application which will automatically store these remote modules locally for you.
+
+Example of remote module loading:
+```javascript
+var myClass = timber({ 
+
+	requires: ':jquery $', // you can also provide an array [':jquery $', ':underscore _']
+
+	init: function() {
+		console.log('jQuery has been included', $(document));
+	}
+
+});
+
+var myObj = new myClass;
+
+/*
+jQuery has been included [document-element]
+*/
+```
+
+The semicolon infront of module names indicates to timber that you wish for the library to load the module from the Timber repo at http://timber.io/repo.
+
+####Retrieving Handlebars Templates With Module Loader<a name='handlebars'></a>
 
 You might have the following Handlebars template:
 
@@ -228,6 +262,42 @@ Notice how you never had to include Handlebars at any point in time. When Timber
 
 Worried about speed once you've deployed? The (Timber Compiler)[#compiler] automatically compiles Handlebars templates and locally loads the Handlebars runtime for you.
 
+####Creating Folder Shortcuts/Aliases For Easier Module Loading<a name='addPath'></a>
+
+You may have a project with this directory structure:
+
+    myApp/index.html
+    myApp/js/main.js
+    myApp/templates/pages/home.hbs
+    myApp/templates/pages/about.hbs
+    myApp/templates/pages/contact.hbs
+
+In your JavaScript files, instead of loading these template modules in using:
+
+```javascript
+// myApp/js/main.js
+
+timber({
+    requires: [ '~/templates/pages/home.hbs home', // ~/ means relative to index.html
+                '~/templates/pages/about.hbs about',
+                '~/templates/pages/contact.hbs contact' ]
+});
+```
+You can create a shortcut/alias to `myApp/templates` by adding this line to any JavaScript file:
+```javascript
+// myApp/js/main.js
+
+// *** ADD THIS LINE ***
+timber.addPath('pages', '~/templates/pages/');
+
+
+timber({
+    requires: [ 'pages/home.hbs home',
+                'pages/about.hbs about',
+                'pages/contact.hbs contact' ]
+});
+```
+
 Example Uses
 --------------------------------------
 
@@ -267,7 +337,6 @@ attempting to access private variables: undefined
 */
 ```
 
-<<<<<<< HEAD
 ####Events<a name='events'></a>
 
 Every timber class has a div attribute called `this.el` (`this.$el` works automatically if you use jQuery). You can bind functions to this div element in the following way:
@@ -298,39 +367,6 @@ document.body.appendChild(object.el); // or $('body').append(object.el) for jQue
 ```
 
 ####Default values & Inheritence<a name='inheritence'></a>
-=======
-Events:
-
-```html
-<html>
-...
-	<body>
-	...
-		<div class="seven" style="background: #000; height: 10px; width: 10px;">7</div>
-	...
-	</body>
-</html>
-```
-
-```javascript
-var six = timber({
-	
-	init: function() {
-
-	},
-
-	events: {
-		"click .seven": "showMessage"
-	},
-
-	showMessage: function() {
-		alert("This isn't the number six!");
-	}
-});
-```
-
-Default values & Inheritence:
->>>>>>> 8cf67cc8a7c7dd29f6a60a2c3c12e12086785626
 
 ```javascript
 var horse = animal.extend({

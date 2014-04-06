@@ -1,11 +1,13 @@
 //var timber = require('../../timber_compiled.js');
 
+timber.addPath('mods', '~/../modules');
+
 var y = timber({
-	extends: ['../../modules/test/test2.js', '../../modules/test3'],
+	extends: ['mods/test/test2.js', 'mods/test3'],
     defaults: {
 	    array: [ 1, 2, 3 ]
 	},
-    requires: [':underscore _', '../../modules/test.hbs'],
+    requires: [':underscore _', 'mods/test.hbs'],
 	init: function() {
         console.log(test(123));
         console.log( _.size({ a: 1, b: 2, c: 3 }) );
