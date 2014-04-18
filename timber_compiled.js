@@ -111,6 +111,7 @@ function baseName(str) {
 }
 
 function resolvePath(filename, base) {
+
     // fetch from web
     if(filename.charAt(0) == ':')
 		return settings.repoBase + '?v=' + settings.version + '&f=' + filename.substr(1);
@@ -151,7 +152,37 @@ var pkgEnv = {
 };
 
 function getBasePath() {
-    return typeof pkgEnv.base === 'undefined' && document.currentScript !== null ? basePath(document.currentScript.src) : pkgEnv.base;
+
+    // return propagated base
+    if(typeof pkgEnv.base !== 'undefined')
+        return pkgEnv.base;
+    
+    // determine which script is running right now, get the 3rd item down the stack if currentScript doesnt exist
+    var currentScript;
+    if(true || "undefined" === typeof document.currentScript && "undefined" !== document) {
+        var stack;
+        try{
+            throw new Error();
+        }catch(e) {
+            stack = e.stack;
+        }
+        currentScript = stack.match(/https?:\/\/[\s\S]+https?:\/\/[\s\S]+(https?.+):[0-9]+:[0-9]+/m).pop();
+    }else{
+        currentScript = document.currentScript.src;
+    }
+
+    // remove filename from path
+    var currentScript = basePath(currentScript);
+
+    // remove prefix from path
+    if(!pkgEnv.homeDir)
+        pkgEnv.homeDir = basePath(window.location.href);    
+    currentScript = currentScript.substr(pkgEnv.homeDir.length);
+
+    // return base
+    if(currentScript !== null)
+        return basePath(currentScript);
+
 }
 
 trick.addPath = function(key, filename) {

@@ -3,7 +3,7 @@
 timber.addPath('mods', '~/../modules');
 
 var y = timber({
-	extends: ['mods/test/test2.js', 'mods/test3'],
+	extends: ['mods/test/test2.js', '../../modules/test3'],
     defaults: {
 	    array: [ 1, 2, 3 ]
 	},
