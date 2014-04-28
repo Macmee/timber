@@ -12,6 +12,13 @@ var helperMethods = {
 		return self;
 	},
 
+    replaceRange: function(str, startPos, len, replace) {
+        var start = str.substr(0, startPos);
+        var stop = str.substr(startPos + len);
+        var replace = replace ? replace : '';
+        return start + replace + stop;
+    },
+    
 	/* combine attributes of obj into self
 	 * but do not overwrite already existing
 	 * attributes.

@@ -1,8 +1,11 @@
-var isNodeJS = false;
+var isNodeJS;
 try{
-    isNodeJS = typeof module !== 'undefined' && typeof module.exports !== 'undefined' && process !== 'undefined' && global !== 'undefined';
-}catch(d)
-{}
+    isNodeJS = typeof module !== 'undefined' && typeof module.exports !== 'undefined'
+                                             && process !== 'undefined'
+                                             && global !== 'undefined';
+}catch(d) {
+    isNodeJS = false;
+}
 
 (function(globalScope) {
 
@@ -36,6 +39,10 @@ try{
 	/* returns the "timber" method exposed in the window below, used to create new timbers */
 	include "new_timber_builder.js";
 
+    /* expose SOME helper methods */
+    trick.endsWith = helperMethods.endsWith;
+    trick.replaceRange = helperMethods.replaceRange;
+    
 	/* expose the timber builder to the global object */
     globalScope.timber = trick;
 

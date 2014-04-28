@@ -7,12 +7,12 @@ var y = timber({
     defaults: {
 	    array: [ 1, 2, 3 ]
 	},
-    requires: [':underscore _', 'mods/test.hbs'],
+    requires: [':underscore _', 'mods/test.hbs', 'mods/test2.hbs'],
 	init: function() {
         console.log(test(123));
         console.log( _.size({ a: 1, b: 2, c: 3 }) );
 		this.super.init();
 	}
 });
-
+ 
 new y;

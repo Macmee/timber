@@ -18,8 +18,7 @@ function trick(trickProps, isExtending) {
 	}
 
 	// create constructor for the new trick
-	var newTrick;
-	newTrick = function(params) {
+	var newTrick = function(params) {
 		// call the setupTrick method
 		tricks.call(this, params);
 		// invoke "init" constructor unless we're a singleton
@@ -99,7 +98,10 @@ function applyTrickProps(newTrick, trickProps) {
 	if(typeof trickProps.requires !== 'undefined') {
 		var reqList = typeof trickProps.requires === 'string' ? [trickProps.requires] : trickProps.requires;
 		for(var i in reqList) {
-			var moduleDetails = moduleSelector(reqList[i]);
+            var requirement = reqList[i];
+            if(!requirement)
+                continue;
+			var moduleDetails = pkgEnv.moduleSelector(requirement);
 			var mod = getModule(moduleDetails.name + '.' + moduleDetails.extension);
 			// store module
 			if(moduleDetails.saveParent === 'this')
