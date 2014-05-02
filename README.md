@@ -298,6 +298,8 @@ timber({
 });
 ```
 
+Recall that ~/ refers to the directory that the current webpage being evaluated is in.
+
 Example Uses
 --------------------------------------
 
