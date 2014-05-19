@@ -3,7 +3,7 @@ function tricks(params) {
 	var self = this;
 
         // give this timber deep copies of its defaults
-        if(typeof this.deepProperties !== 'undefined') {
+    if(typeof this.deepProperties !== 'undefined') {
 	    for(var prop in this.deepProperties)
 		this[prop] = JSON.parse(this.deepProperties[prop]);
 	    delete this.deepProperties;
@@ -20,10 +20,15 @@ function tricks(params) {
 
 	this.trigger = function(name, value, callback) {
 		var callbacks = propChangeCallbacks[name];
-		if(callbacks)
-			for(var i in callbacks)
-				callbacks[i].call(this, value, callback);
-	}
+		if(callbacks) {
+            var args = [];
+            for(var i = 1; i < arguments.length; i++) {
+                args.push(arguments[i]);
+            }
+		    for(var i in callbacks)
+				callbacks[i].apply(this, args);
+        }
+	};
 
 	this.on = function(key, callback) {
 		// if event is for property, cause assignment to trigger change
@@ -47,7 +52,7 @@ function tricks(params) {
 			propChangeCallbacks[key] = [ callback ];
 		else
 			propChangeCallbacks[key].push(callback);
-	}
+	};
 
 	// create objects if none were given
 	if(!params)
