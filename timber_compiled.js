@@ -79,6 +79,8 @@ Function.prototype.bind = function(obj) {
 
     globalScope: globalScope,
 
+    folderSeparator: /^win/.test(process.platform) ? '/' : '/',
+    
     paths: {
         '': '/',
         'http:': 'http:',
@@ -92,7 +94,7 @@ Function.prototype.bind = function(obj) {
         if(filename.charAt(0) == ':')
 		    return settings.repoBase + '?v=' + settings.version + '&f=' + filename.substr(1);
         // macro
-        var slash = filename.indexOf('/');
+        var slash = filename.indexOf(this.folderSeparator);
         if(slash > -1) {
             var front = filename.substr(0, slash);
             var path = paths && paths[front] || this.paths[front];
@@ -103,8 +105,8 @@ Function.prototype.bind = function(obj) {
         // no base provided
         if(typeof base === 'undefined')
             return filename;
-	    var filename_parts = filename.split('/');
-	    var basename_parts = base.split('/');
+	    var filename_parts = filename.split(this.folderSeparator);
+	    var basename_parts = base.split(this.folderSeparator);
 	    if(basename_parts[basename_parts.length-1] == '')
 		    basename_parts.pop();
 
@@ -113,17 +115,17 @@ Function.prototype.bind = function(obj) {
 		    basename_parts.pop();
 	    }
 
-	    return basename_parts.join('/') + (basename_parts.length > 0 ? '/' : '') + filename_parts.join('/');
+	    return basename_parts.join(this.folderSeparator) + (basename_parts.length > 0 ? this.folderSeparator : '') + filename_parts.join(this.folderSeparator);
     },
     
     basePath: function(path) {
-        var slash = path.lastIndexOf('/');
+        var slash = path.lastIndexOf(this.folderSeparator);
         var base = path.substr(0, slash);
-        return base == '' ? base : base + '/';
+        return base == '' ? base : base + this.folderSeparator;
     },
 
     baseName: function(str) {
-        return str.substr(str.lastIndexOf('/')+1);
+        return str.substr(str.lastIndexOf(this.folderSeparator)+1);
     },
 
     // returns base, latest class and sets new environment
@@ -243,7 +245,7 @@ Function.prototype.bind = function(obj) {
         }
         var module = { exports: { __undefined: true } };
         var oldContext = pkgEnv.createContext(base);
-        var exports = true;
+        var exports = {};
 
         // run the encapsulated code
         try{
@@ -286,7 +288,7 @@ Function.prototype.bind = function(obj) {
 // elements of the packageManager differ for web and nodeJS
 if(isNodeJS) {
     // default base for requiring timber classes to be the base of where timber was initially included
-pkgEnv.base = pkgEnv.basePath(module.parent.filename);
+pkgEnv.base = pkgEnv.basePath(module.parent.filename.replace(/\\/g, '/'));
 
 // we need a way to fetch modules over the internet
 pkgEnv.webRequire = function(fullPath, base) {
@@ -336,7 +338,7 @@ pkgEnv.getModule_real = function(filename, base) {
     // laad package in
     }else{
         // first try loading module directly from user given path
-        try{ 
+        try{
             if(require('fs').existsSync(fullPath))
                 mod = require(fullPath);
             // now try loading without the file extension (maybe they gave us a folder?)
@@ -405,8 +407,8 @@ pkgEnv.getModule_real = function(filename, base) {
 
 trick.addPath = function(key, filename) {
     var path = pkgEnv.resolvePath( filename, pkgEnv.getBasePath() );
-    if(!helperMethods.endsWith(path, '/'))
-        path = path + '/';
+    if(!helperMethods.endsWith(path, this.folderSeparator))
+        path = path + this.folderSeparator;
     pkgEnv.paths[key] = path;
 }
 
@@ -490,7 +492,8 @@ var classExtender = function(newClass, parent) {
 
 	cache: {},
 
-	hasPrivateScope: function(fn) {
+	    hasPrivateScope: function(fn) {
+            
 		var fn_str = fn.toString();
 		var signature = fn.name + ':' + fn.length + ':' + fn_str.length;
 		if(typeof this.cache[signature] !== 'undefined')

@@ -6,6 +6,8 @@ var pkgEnv = trick.pkgEnv = {
 
     globalScope: globalScope,
 
+    folderSeparator: /^win/.test(process.platform) ? '/' : '/',
+    
     paths: {
         '': '/',
         'http:': 'http:',
@@ -19,7 +21,7 @@ var pkgEnv = trick.pkgEnv = {
         if(filename.charAt(0) == ':')
 		    return settings.repoBase + '?v=' + settings.version + '&f=' + filename.substr(1);
         // macro
-        var slash = filename.indexOf('/');
+        var slash = filename.indexOf(this.folderSeparator);
         if(slash > -1) {
             var front = filename.substr(0, slash);
             var path = paths && paths[front] || this.paths[front];
@@ -30,8 +32,8 @@ var pkgEnv = trick.pkgEnv = {
         // no base provided
         if(typeof base === 'undefined')
             return filename;
-	    var filename_parts = filename.split('/');
-	    var basename_parts = base.split('/');
+	    var filename_parts = filename.split(this.folderSeparator);
+	    var basename_parts = base.split(this.folderSeparator);
 	    if(basename_parts[basename_parts.length-1] == '')
 		    basename_parts.pop();
 
@@ -40,17 +42,17 @@ var pkgEnv = trick.pkgEnv = {
 		    basename_parts.pop();
 	    }
 
-	    return basename_parts.join('/') + (basename_parts.length > 0 ? '/' : '') + filename_parts.join('/');
+	    return basename_parts.join(this.folderSeparator) + (basename_parts.length > 0 ? this.folderSeparator : '') + filename_parts.join(this.folderSeparator);
     },
     
     basePath: function(path) {
-        var slash = path.lastIndexOf('/');
+        var slash = path.lastIndexOf(this.folderSeparator);
         var base = path.substr(0, slash);
-        return base == '' ? base : base + '/';
+        return base == '' ? base : base + this.folderSeparator;
     },
 
     baseName: function(str) {
-        return str.substr(str.lastIndexOf('/')+1);
+        return str.substr(str.lastIndexOf(this.folderSeparator)+1);
     },
 
     // returns base, latest class and sets new environment
@@ -219,8 +221,8 @@ if(isNodeJS) {
 
 trick.addPath = function(key, filename) {
     var path = pkgEnv.resolvePath( filename, pkgEnv.getBasePath() );
-    if(!helperMethods.endsWith(path, '/'))
-        path = path + '/';
+    if(!helperMethods.endsWith(path, this.folderSeparator))
+        path = path + this.folderSeparator;
     pkgEnv.paths[key] = path;
 }
 

@@ -1,5 +1,5 @@
 // default base for requiring timber classes to be the base of where timber was initially included
-pkgEnv.base = pkgEnv.basePath(module.parent.filename);
+pkgEnv.base = pkgEnv.basePath(module.parent.filename.replace(/\\/g, '/'));
 
 // we need a way to fetch modules over the internet
 pkgEnv.webRequire = function(fullPath, base) {
@@ -49,7 +49,7 @@ pkgEnv.getModule_real = function(filename, base) {
     // laad package in
     }else{
         // first try loading module directly from user given path
-        try{ 
+        try{
             if(require('fs').existsSync(fullPath))
                 mod = require(fullPath);
             // now try loading without the file extension (maybe they gave us a folder?)
