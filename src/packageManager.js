@@ -228,4 +228,4 @@ trick.addPath = function(key, filename) {
 
 globalScope.getModule = function(filename) {
 	return pkgEnv.getModule_real(filename, pkgEnv.getBasePath());
-}
+};

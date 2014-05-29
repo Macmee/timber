@@ -14,5 +14,5 @@ var y = timber({
 		this.super.init();
 	}
 });
- 
+
 new y;

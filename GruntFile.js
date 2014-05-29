@@ -2,11 +2,6 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
-
-
-grunt.loadNpmTasks('grunt-contrib-handlebars');
-
-
     
   grunt.initConfig({
     watch: {
@@ -26,18 +21,7 @@ grunt.loadNpmTasks('grunt-contrib-handlebars');
           keepalive: true
         }
       }
-    },
-
-handlebars: {
-  compile: {
-    options: {
-      namespace: "JST"
-    },
-    files: {
-      "test.js": "modules/test.hbs"
     }
-  }
-}
 
 
   });
